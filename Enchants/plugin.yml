@@ -1,0 +1,5 @@
+name: CustomEnchants
+main: ImagicalGamer\CustomEnchants\CustomEnchants
+version: 0.0.2-ALPHA
+api: [1.0.0, 2.0.0, 3.0.0-ALPHA1]
+author: Jake Casto
