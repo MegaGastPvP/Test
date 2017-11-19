@@ -1,0 +1,19 @@
+name: KitsUI
+main: KitsUI\Main
+api: [3.0.0-ALPHA7, 3.0.0-ALPHA8, 3.0.0-ALPHA9]
+version: 1.0
+author: Potatoe
+
+commands:
+ kits:
+  description: "KitsUI Command"
+  aliases: kit
+ defaultkits:
+  description: "KitsUI Command"
+  aliases: dkits
+ rankkits:
+  description: "KitsUI Command"
+  aliases: rkits
+ specialkits:
+  description: "KitsUI Command"
+  aliases: skits
