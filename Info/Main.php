@@ -96,6 +96,7 @@ class Main extends PluginBase implements Listener {
                     $f->addButton(c::RED . "FactionChat");
                     $f->sendToPlayer($sender);
                 }
+             return true;
             case "claim":
                 if($sender instanceof Player){
                     $a = $this->getServer()->getPluginManager()->getPlugin("FormAPI");
@@ -120,7 +121,7 @@ class Main extends PluginBase implements Listener {
                     });
                     $f->setTitle(c::GOLD . "Claim");
                     $f->setContent(c::AQUA . "Are you sure you what to claim land?");
-                    $f->addButton(c::GREEM . "Yes");
+                    $f->addButton(c::GREEN . "Yes");
                     $f->addButton(c::DARK_RED . "No");
                     $f->sendToPlayer($sender);
                 }
