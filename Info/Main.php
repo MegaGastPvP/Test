@@ -18,7 +18,7 @@ class Main extends PluginBase implements Listener {
     }
     public function onCommand(CommandSender $sender, Command $cmd, string $label, array $args) : bool {
         switch($cmd->getName()){
-            case "facs":
+            case "fac":
                 if($sender instanceof Player){
                     $a = $this->getServer()->getPluginManager()->getPlugin("FormAPI");
                     if($a === null || $a->isDisabled()){
@@ -31,51 +31,51 @@ class Main extends PluginBase implements Listener {
                     }
                     switch($r){
                         case 0:
-                               $command = "fa claim";
+                               $command = "claim";
                                $this->getServer()->getCommandMap()->dispatch($sender, $command);
                                break;
                         case 1:
-                               $command = "fa overclaim";
+                               $command = "overclaim";
                                $this->getServer()->getCommandMap()->dispatch($sender, $command);
                                break;
                         case 2:
-                               $command = "fa unclaim";
+                               $command = "unclaim";
                                $this->getServer()->getCommandMap()->dispatch($sender, $command);
                                break;
                         case 3:
-                               $command = "fa topfactions";
+                               $command = "topfactions";
                                $this->getServer()->getCommandMap()->dispatch($sender, $command);
                                break;
                         case 4;
-                               $command = "fa del";
+                               $command = "del";
                                $this->getServer()->getCommandMap()->dispatch($sender, $command);
                                break;
                         case 5;
-                               $command = "fa leave";
+                               $command = "leave";
                                $this->getServer()->getCommandMap()->dispatch($sender, $command);
                                break;
                         case 6;
-                               $command = "fa home";
+                               $command = "homer";
                                $this->getServer()->getCommandMap()->dispatch($sender, $command);
                                break;
                         case 7;
-                               $command = "fa unsethome";
+                               $command = "unsethomer";
                                $this->getServer()->getCommandMap()->dispatch($sender, $command);
                                break;
                         case 8;
-                               $command = "fa ourmembers";
+                               $command = "ourmembers";
                                $this->getServer()->getCommandMap()->dispatch($sender, $command);
                                break;
                         case 9;
-                               $command = "fa ourofficers";
+                               $command = "ourofficers";
                                $this->getServer()->getCommandMap()->dispatch($sender, $command);
                                break;
                         case 10;
-                                $command = "fa ourleader";
+                                $command = "ourleader";
                                 $this->getServer()->getCommandMap()->dispatch($sender, $command);
                                 break;
                         case 11;
-                                $command = "fa c";
+                                $command = "chat";
                                 $this->getServer()->getCommandMap()->dispatch($sender, $command);
                                 break;
                     }
@@ -96,7 +96,7 @@ class Main extends PluginBase implements Listener {
                     $f->addButton(c::RED . "FactionChat");
                     $f->sendToPlayer($sender);
                 }
-            case "fa claim":
+            case "claim":
                 if($sender instanceof Player){
                     $a = $this->getServer()->getPluginManager()->getPlugin("FormAPI");
                     if($a === null || $a->isDisabled()){
@@ -118,38 +118,12 @@ class Main extends PluginBase implements Listener {
                                break;
                     }
                     });
-                    $f->setTitle(c::AQUA . c::BOLD . "Claim");
-                    $f->setContent(c::RED . "Are you sure you what to claim");
-                    $f->addButton(c::GREEN . "Yes Im Sure");
-                    $f->addButton(c::DARK_RED . "Never Mind");
+                    $f->setTitle(c::GOLD . "Claim");
+                    $f->setContent(c::AQUA . "Are you sure you what to claim land?");
+                    $f->addButton(c::GREEM . "Yes");
+                    $f->addButton(c::DARK_RED . "No");
+                    $f->sendToPlayer($sender);
                 }
-            case "fa unclaim":
-                if($sender instanceof Player){
-                    $a = $this->getServer()->getPluginManager()->getPlugin("FormAPI");
-                    if($a === null || $a->isDisabled()){
-                        
-                    }
-                    $f = $a->createSimpleForm(function (Player $sender, array $data){
-                    $r = $data[0];
-                    if($r === null){
-                        
-                    }
-                    switch($r){
-                        case 0:
-                               $command = "f unclaim";
-                               $this->getServer()->getCommandMap()->dispatch($sender, $command);
-                               break;
-                        case 1:
-                               $command = "fac";
-                               $this->getServer()->getCommandMap()->dispatch($sender, $command);
-                               break;
-                    }
-                    });
-                    $f->setTitle(c::AQUA . c::BOLD . "UnClaim");
-                    $f->setContent(c::RED . "Are you sure you what to UnClaim");
-                    $f->addButton(c::GREEN . "Yes Im Sure");
-                    $f->addButton(c::DARK_RED . "Never Mind");
-                } 
         }
         return true;
     }
