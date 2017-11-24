@@ -1,374 +1,397 @@
 <?php
-namespace EasyShop;
 
+namespace KingdomCore;
+
+use pocketmine\utils\Config;
+use pocketmine\command\CommandSender;
+use pocketmine\item\Item;
+use pocketmine\command\Command;
+use pocketmine\command\ConsoleCommandSender;
 use pocketmine\Player;
-use pocketmine\Server;
-use pocketmine\plugin\PluginBase;
-use pocketmine\event\Listener;
-use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\item\{Item, ItemBlock};
-use pocketmine\math\Vector3;
-use pocketmine\utils\TextFormat as TF;
-use pocketmine\network\mcpe\protocol\PacketPool;
-use pocketmine\event\server\DataPacketReceiveEvent;
-use EasyShop\Modals\elements\{Dropdown, Input, Button, Label, Slider, StepSlider, Toggle};
-use EasyShop\Modals\network\{GuiDataPickItemPacket, ModalFormRequestPacket, ModalFormResponsePacket, ServerSettingsRequestPacket, ServerSettingsResponsePacket};
-use EasyShop\Modals\windows\{CustomForm, ModalWindow, SimpleForm};
-use pocketmine\command\{Command, CommandSender, ConsoleCommandSender, CommandExecutor};
 
-use onebone\economyapi\EconomyAPI;
-
-class Main extends PluginBase implements Listener {
-  public $shop;
-  public $item;
-
-  //documentation for setting up the items
-  /*
-  "Item name" => [item_id, item_damage, buy_price, sell_price]
-  */
-public $Blocks = [
-    "ICON" => ["Blocks",2,0],
-    "Grass" => [2,0,150,125],
-    "TNT" => [46,0,2500,1500],
-    "Obsidian" => [49,0,5000,3500],
-    "Bedrock" => [7,0,10000,7500],
-    "Chest" => [54,0,500,250],
-    "Stone" => [1,0,150,125],
-    "Wood" => [17,0,150,125],
-    "Sand" => [12,0,250,175],
-    "Redstone Block" => [152,0,2500,1750],
-    "Lapis Block" => [22,0,2500,1750],
-    "Iron Block" => [42,0,3500,3250],
-    "Gold Block" => [41,0,4500,3500],
-    "Diamond Block" => [57,0,6500,4500],
-    "Water Flowing" => [8,0,2500,1750],
-    "Lava Flowing" => [10,0,2500,1750]
-  ];
-
-  public $Ores = [
-    "ICON" => ["Ores",266,0],
-    "Coal Ore" => [16,0,500,300],
-    "Redstone Ore" => [73,0,1000,500],
-    "Lapis Lazuli Ore" => [21,0,1000,500],
-    "Iron Ore" => [15,0,3000,2500],
-    "Gold Ore" => [14,0,3500, 3000],
-    "Diamond Ore" => [56,0,5000,4500],
-    "Coal" => [263,0,250,150],
-    "Redstone" => [331,0,500,250],
-    "Lapis Lazuli" => [331,0,500,250],
-    "Iron Ingot" => [265,0,1500,1250],
-    "Gold Ingot" => [266,0,1750,1500],
-    "Diamond" => [264,0,2500,1250]
-  ];
-
-  public $Tools = [
-    "ICON" => ["Tools",278,0],
-    "Wooden Pickaxe" => [270,0,250,150],
-    "Wooden Shovel" => [269,0,250,150],
-    "Wooden Axe" => [271,0,250,150],
-    "Wooden Hoe" => [290,0,250,150],
-    "Wooden Sword" => [268,0,500,250],
-    "Stone Pickaxe" => [274,0,500,250],
-    "Stone Shovel" => [273,0,500,250],
-    "Stone Axe" => [275,0,500,250],
-    "Stone Hoe" => [291,0,500,250],
-    "Stone Sword" => [272,0,750,500],
-    "Iron Pickaxe" => [257,0,1000,750],
-    "Iron Shovel" => [256,0,1000,750],
-    "Iron Axe" => [258,0,1000,750],
-    "Iron Hoe" => [292,0,1000,750],
-    "Iron Sword" => [267,0,1500,1250],
-    "Diamond Pickaxe" => [278,0,2500,2250],
-    "Diamond Shovel" => [277,0,2500,2250],
-    "Diamond Axe" => [279,0,2500,2250],
-    "Diamond Hoe" => [293,0,2500,2250],
-    "Diamond Sword" => [276,0,3000,2750],
-    "Bow" => [261,0,2500,1500],
-    "Arrow" => [262,0,125,75],
-    "Flint & Steel" => [259,0,750,500]
-  ];
-
-  public $Armor = [
-    "ICON" => ["Armor",311,0],
-    "Leather Helmet" => [298,0,250,0],
-    "Leather Chestplate" => [299,0,350,0],
-    "Leather Leggings" => [300,0,350,0],
-    "Leather Boots" => [301,0,250,0],
-    "Gold Helmet" => [314,0,500,0],
-    "Gold Chestplate" => [315,0,750,0],
-    "Gold Leggings" => [316,0,750,0],
-    "Gold Boots" => [317,0,500,0],
-    "Chain Helmet" => [302,0,750,0],
-    "Chain Chestplate" => [303,0,1000,0],
-    "Chain Leggings" => [304,0,1000,0],
-    "Chain Boots" => [305,0,750,0],
-    "Iron Helmet" => [306,0,1250,0],
-    "Iron Chestplate" => [307,0,1500,0],
-    "Iron Leggings" => [308,0,1500,0],
-    "Iron Boots" => [309,0,1250,0],
-    "Diamond Helmet" => [310,0,7500,0],
-    "Diamond Chestplate" => [311,0,10000,0],
-    "Diamond Leggings" => [312,0,10000,0],
-    "Diamond Boots" => [313,0,7500,0]
-  ];
-
-  public $Potions = [
-    "ICON" => ["Potions",374,0],
-    "Glass Bottle" => [374,0,500,0],
-    "Water Bottle" => [373,0,750,0],
-    "Night Vision [3:00]" => [373,5,1000,0],
-    "Leaping [3:00]" => [373,9,1000,0],
-    "Fire Resistance [3:00]" => [373,12,1000,0],
-    "Swiftness [3:00]" => [373,14,1000,0],
-    "Water Breathing [3:00]" => [373,19,1000,0],
-    "Instant Health" => [373,21,1000,0],
-    "Regeneration [0:45]" => [373,28,1000, 0],
-    "Strength [3:00]" => [373,31,1000, 0]
-  ];
-
-  public $Food = [
-    "ICON" => ["Food",364,0],
-    "Steak" => [364,0,150,125],
-    "Golden Apple" => [322,0,1500,1250],
-    "Enchanted Golden Apple" => [466,0,12500,7500],
-    "Carrot" => [391,0,100,50],
-    "Chicken" => [365,0,100,50]
-  ];
-
-  public $Miscellaneous = [
-    "ICON" => ["Miscellaneous",368,0],
-    "Enderpearl" => [368,0,250,150],
-    "String" => [287,0,150,125],
-    "Feather" => [288,0,150,125],
-    "Leather" => [334,0,250,200],
-    "Spider Eye" => [375,0,250,200],
-    "Bone" => [352,0,150,125],
-    "Gunpowder" => [289,0,75,50],
-    "Blaze Rod" => [369,0,150,125],
-    "Rotten Flesh" => [367,0,75,50],
-    "Pumpkin Seeds" => [361,0,250,175],
-    "Melon Seeds" => [362,0,250,175],
-    "Wheat Seeds" => [295,0,250,175],
-    "Book & Quill" => [386,0,150,0]
-  ];
-
-  public $Spawners = [
-    "ICON" => ["Spawners",52,0],
-    "Chicken" => [52,10,10000,5000],
-    "Cow" => [52,11,10000,5000],
-    "Sheep" => [52,13,10000,5000],
-    "Skeleton" => [52,34,15000,10000],
-    "Zombie" => [52,32,25000,15000],
-    "Blaze" => [52,43,50000,25000],
-    "Iron Golem" => [52,20,1000000,500000],
-    "Zombie Pigman" => [52,36,100000,50000]
-  ];
-
+class Main extends \pocketmine\plugin\PluginBase{
+  
+   public $configs = [];
+   public $joining = [];
+   public $cfg = [];
+   public $requester = [];
+   public $enabledc = [];
+   public $am = [];
+   public $pperms;
+  
   public function onEnable(){
-    $this->getServer()->getPluginManager()->registerEvents($this, $this);
-    PacketPool::registerPacket(new GuiDataPickItemPacket());
-		PacketPool::registerPacket(new ModalFormRequestPacket());
-		PacketPool::registerPacket(new ModalFormResponsePacket());
-		PacketPool::registerPacket(new ServerSettingsRequestPacket());
-		PacketPool::registerPacket(new ServerSettingsResponsePacket());
-    $this->item = [$this->Blocks, $this->Ores, $this->Tools, $this->Armor, $this->Food, $this->Miscellaneous];
-  }
-
-  public function sendMainShop(Player $player){
-    $ui = new SimpleForm("§lNether Factions Shop§r","              Buy And Sell Items Here!");
-    foreach($this->item as $category){
-      if(isset($category["ICON"])){
-        $rawitemdata = $category["ICON"];
-        $button = new Button($rawitemdata[0]);
-        $button->addImage('url', "http://avengetech.me/items/".$rawitemdata[1]."-".$rawitemdata[2].".png");
-        $ui->addButton($button);
+     @mkdir($this->getDataFolder());
+     @mkdir($this->getDataFolder() . "/players");
+     @mkdir($this->getDataFolder() . "/kingdoms");
+	 $this->pperms = $this->getServer()->getPluginManager()->getPlugin('PurePerms');
+     $this->getServer()->getPluginManager()->registerEvents(new EventListener($this), $this);
+     if(!file_exists($this->getDataFolder() . "/kingdoms/Dracosis.json")){
+         $this->registerKingdom("Dracosis");
+     }
+      if(!file_exists($this->getDataFolder() . "/kingdoms/Dracosis.json")){
+          $this->registerKingdom("Dracosis");
+          $this->getLogger()->info('Registring KINGDOM!!!');
       }
-    }
-    $pk = new ModalFormRequestPacket();
-    $pk->formId = 110;
-    $pk->formData = json_encode($ui);
-    $player->dataPacket($pk);
-    return true;
+      if(!file_exists($this->getDataFolder() . "/kingdoms/Quay.json")){
+          $this->registerKingdom("Quay");
+          $this->getLogger()->info('Registring KINGDOM!!!');
+      }
+      if(!file_exists($this->getDataFolder() . "/kingdoms/Cordian.json")){
+          $this->registerKingdom("Cordian");
+          $this->getLogger()->info('Registring KINGDOM!!!');
+      }
+
+     $this->saveDefaultConfig();
+  }
+  
+  public function getMembers($kingdom, $player){
+	  $player->sendMessage("§aMemebers:");
+	  foreach(glob($this->getDataFolder() . "/players/*.json") as $players){
+		  $str = file_get_contents($players);
+		  $json = json_decode($str, true);
+		  if(!empty($json['kingdom'])){
+			  if($json['kingdom'] == $kingdom){
+				  $player->sendMessage("§7- §e" . $json['name']);
+			  }
+		  }
+	  }
+  }
+  
+  public function registerKingdom($kingdom){
+      $config = new Config($this->getDataFolder() . "/kingdoms/" . $kingdom . ".json", Config::JSON, ["power" => 0, "king" => "name", "members" => []]);
+      
   }
 
-  public function sendShop(Player $player, $id){
-    $ui = new SimpleForm("§lNether Factions Shop§r","              Buy And Sell Items Here!");
-    $ids = -1;
-    foreach($this->item as $category){
-      $ids++;
-      $rawitemdata = $category["ICON"];
-      if($ids == $id){
-        $name = $rawitemdata[0];
-        $data = $this->$name;
-        foreach($data as $name => $item){
-          if($name != "ICON"){
-            $button = new Button($name);
-            $button->addImage('url', "http://avengetech.me/items/".$item[0]."-".$item[1].".png");
-            $ui->addButton($button);
-          }
+    public function onCommand(CommandSender $sender, Command $command, string $label, array $args) : bool{
+        switch(strtolower($command->getName())){
+            case "vote";
+                $sender->getInventory()->addItem(Item::get(131, 0,1)->setCustomName("Choose a Rank"));
+                break;
+			case 'skingdom';
+			$config = new Config($this->getDataFolder() . "/players/" . $sender->getName() . ".json");
+			            if($config->get('kingdom') !== 'Dracosis' and is_int($config->get('kingdom'))){
+							echo 'PICO!!! ' . $config->get('kingdom');
+						$form = new CustomForm(444, 'nwm');
+						$form->setTitle('Select kingdom');
+		                $form->addButton('Dracosis');
+		                $form->addButton('Quay');
+		                $form->addButton('Cordian');
+	                	 $form->sendTo($sender);
+						}
+						break;
+            case "k";
+                if(isset($args[0])) {
+                    switch ($args[0]) {
+                        case "info";
+                            $api = $this->getServer()->getPluginManager()->getPlugin("FormAPI");
+                            $form = $api->createSimpleForm(function (Player $player, array $data) {
+                                $result = $data{0};
+                                if (is_null($result)) {
+                                    return false;
+                                }
+                                if ($result == 0) {
+                                    $this->sendReqUI($player);
+                                }
+                                if($result == 1){
+                                    if ($this->enabledc[strtolower($player->getName())] == false) {
+                                        $player->sendMessage("§aEnabled Kingdom Chat");
+                                        $this->enabledc[strtolower($player->getName())] = true;
+                                    } else {
+                                        $player->sendMessage("§aDisabled Kingdom Chat");
+                                        $this->enabledc[strtolower($player->getName())] = false;
+                                    }
+                                }elseif($result == 2){
+									$this->getMembers($this->getKingdom($player), $player);
+								}
+                                var_dump($result);
+                            });
+                            $form->setTitle("§aKingdom Info");;
+                            $form->setContent(" §ePower: §b" . $this->getKingdomData($this->getKingdom($sender), "power") . "\n " . "§eKing: §b" . $this->getKingdomData($this->getKingdom($sender), "king"));
+                            var_dump($this->getKingdomData($this->getKingdom($sender))->get("members"));
+                            $form->addButton("§dKingdom Booty");
+                            $form->addButton("§dKingdom Chat");
+							$form->addButton('§dMembers');
+                            $form->sendToPlayer($sender);
+                            break;
+                        case "chat";
+                            if ($this->enabledc[strtolower($sender->getName())] == false) {
+                                $sender->sendMessage("§aEnabled Kingdom Chat");
+                                $this->enabledc[strtolower($sender->getName())] = true;
+                            } else {
+                                $sender->sendMessage("§aDisabled Kingdom Chat");
+                                $this->enabledc[strtolower($sender->getName())] = false;
+                            }
+                            break;
+                    }
+                }else{
+                    $sender->sendMessage("§cNo args");
+                }
+                break;
+            case "money";
+                $config = new Config($this->getDataFolder() . "/players/" . $sender->getName() . ".json");
+                $sender->sendMessage("Money: " . $config->get("money"));
+                break;
+            case "warpme";
+                $api = $this->getServer()->getPluginManager()->getPlugin("FormAPI");
+                $form = $api->createSimpleForm(function(Player $player, array $data){
+                    $result = $data{0};
+                    if(is_null($result)){
+                        return false;
+                    }
+                    switch($result){
+                        case 0;
+                            $this->addJoinDest("Dracosis", $player);
+                            break;
+                        case 1;
+                            $this->addJoinDest("Quay", $player);
+                            break;
+                        case 2;
+                            $this->addJoinDest("Cordian", $player);
+                    }
+                    var_dump($result);
+                });
+                $form->setTitle("§aSelect Warp");
+                //   $form->addLabel('Select gamemode by clicking button.');
+                $form->setContent("Please choose your kingdom in the list below");
+                $form->addButton('Dracosis');
+                $form->addButton('Quay');
+                $form->addButton('Cordian');
+                $form->sendToPlayer($sender);
+                break;
         }
-      }
+        return false;
     }
-    $pk = new ModalFormRequestPacket();
-    $pk->formId = 111;
-    $pk->formData = json_encode($ui);
-    $player->dataPacket($pk);
-    return true;
-  }
 
-  public function sendConfirm(Player $player, $id){
-    $ids = -1;
-    $idi = -1;
-    foreach($this->item as $category){
-      $ids++;
-      $rawitemdata = $category["ICON"];
-      if($ids == $this->shop[$player->getName()]){
-        $name = $rawitemdata[0];
-        $data = $this->$name;
-        foreach($data as $name => $item){
-          if($name != "ICON"){
-            if($idi == $id){
-              $this->item[$player->getName()] = $id;
-              $iname = $name;
-              $cost = $item[2];
-              $sell = $item[3];
-              break;
-            }
+  public $kitlast = [];
+
+  public function sfui($player){
+      $api = $this->getServer()->getPluginManager()->getPlugin("FormAPI");
+      $form = $api->createSimpleForm(function(Player $player, array $data){
+          $result = $data{0};
+          if(is_null($result)){
+              return false;
           }
-          $idi++;
-        }
-      }
-    }
-
-    $ui = new CustomForm($iname);
-    $slider = new Slider("Amount ",1,64,1);
-    $toggle = new Toggle("Selling");
-    if($sell == 0) $sell = "0";
-    $label = new Label(TF::GREEN."Buy: $".TF::GREEN.$cost.TF::RED."\nSell: $".TF::RED.$sell);
-    $ui->addElement($label);
-    $ui->addElement($toggle);
-    $ui->addElement($slider);
-    $pk = new ModalFormRequestPacket();
-    $pk->formId = 112;
-    $pk->formData = json_encode($ui);
-    $player->dataPacket($pk);
-    return true;
+          switch($result){
+              case 0;
+                  $this->sendKitInfoUI($player, "Knight description here", "knight");
+                  $this->kitlast[strtolower($player->getName())] = "knight";
+                  break;
+              case 1;
+                  $this->sendKitInfoUI($player, "Farmer description here", "farmer");
+                  $this->kitlast[strtolower($player->getName())] = "farmer";
+                  break;
+              case 2;
+                  $this->sendKitInfoUI($player, "Gladiator desc", "gladiator");
+                  $this->kitlast[strtolower($player->getName())] = "gladiator";
+                  break;
+              case 3;
+                  $this->sendKitInfoUI($player, "Horseback desc.", "horseback");
+                  $this->kitlast[strtolower($player->getName())] = "horseback";
+                  break;
+              case 4;
+                  $this->sendKitInfoUI($player, "Mage desc.", "mage");
+                  break;
+          }
+          var_dump($result);
+      });
+      $form->setTitle("§aVote");
+      $form->addButton("Knight");
+      $form->addButton("Farmer");
+      $form->addButton("Gladiator");
+      $form->addButton("Horseback");
+      $form->addButton("Mage");
+      $form->sendToPlayer($player);
   }
 
-  public function sell(Player $player, $data, $amount){
-    $ids = -1;
-    $idi = -1;
-    foreach($this->item as $category){
-      $ids++;
-      $rawitemdata = $category["ICON"];
-      if($ids == $this->shop[$player->getName()]){
-        $name = $rawitemdata[0];
-        $data = $this->$name;
-        foreach($data as $name => $item){
-          if($name != "ICON"){
-            if($idi == $this->item[$player->getName()]){
-              $iname = $name;
-              $id = $item[0];
-              $damage = $item[1];
-              $cost = $item[2]*$amount;
-              $sell = $item[3]*$amount;
-              if($sell == 0){
-                $player->sendMessage(TF::RED."This Is Not Sellable!");
-                return true;
-              }
-              if($player->getInventory()->contains(Item::get($id,$damage,$amount))){
-                $player->getInventory()->removeItem(Item::get($id,$damage,$amount));
-                EconomyAPI::getInstance()->addMoney($player, $sell);
-                $player->sendMessage(TF::GREEN."You Sold $amount $iname For $$sell");
+  public function sendKitInfoUI($player, $info, $kit){
+      $api = $this->getServer()->getPluginManager()->getPlugin("FormAPI");
+      $form = $api->createSimpleForm(function(Player $player, array $data){
+          $result = $data{0};
+          if(is_null($result)){
+              return false;
+          }
+          if($result == 0){
+             $this->giveKit($this->kitlast[strtolower($player->getName())], $player);
+          }
+
+          var_dump($result);
+      });
+      $form->setContent($info);
+      $form->addButton("Select kit");
+      $form->sendToPlayer($player);
+  }
+
+
+  public function giveKit($kit, $player){
+      switch($kit){
+          case "knight";
+          $this->getServer()->dispatchCommand(new ConsoleCommandSender(), "setgroup " . $player->getName() . " Knight 24");
+          break;
+          case "farmer";
+              $this->getServer()->dispatchCommand(new ConsoleCommandSender(), "setgroup " . $player->getName() . " Farmer 24");
+          break;
+          case "gladiator";
+              $this->getServer()->dispatchCommand(new ConsoleCommandSender(), "setgroup " . $player->getName() . " Gladiator 24");
+          break;
+
+          case "horseback";
+              $this->getServer()->dispatchCommand(new ConsoleCommandSender(), "setgroup " . $player->getName() . " Horseback 24");
+          break;
+
+          case "mage";
+              $this->getServer()->dispatchCommand(new ConsoleCommandSender(), "setgroup " . $player->getName() . " Mage 24");
+          break;
+      }
+  }
+
+  public function getCfg($player){
+      if($this->cfg[strtolower($player->getName())] == null) {
+          $this->cfg[strtolower($player->getName())] = new Config($this->getDataFolder() . "/players/" . $player->getName() . ".json");
+      }
+          return $this->cfg[strtolower($player->getName())];
+  }
+
+  public function getKingdom($player){
+      $config = new Config($this->getDataFolder() . "/players/" . $player->getName() . ".json");
+      return $config->get("kingdom");
+  }
+
+  public function sendReqUI($player)
+  {
+      $api = $this->getServer()->getPluginManager()->getPlugin("FormAPI");
+      $form = $api->createCustomForm(function(Player $player, array $data){
+          $result = $data{0};
+          if(is_null($result)){
+              return false;
+          }
+          if($result == 1) {
+              if ($pl = $this->getServer()->getPlayerExact($this->getKingdomData($this->getKingdom($player))->get("king")) instanceof Player) {
+                  $player->sendMessage("§eRequested §b" . $result{0} . " §emoney from king.");
+                  $this->requester[strtolower($pl->getName())] = $player->getName();
+                  $this->am[strtolower($pl->getName())] = $result{0};
+                  //$pl->sendMessage("§aYou have money request from " . $player->getName() . " , it's " . $result{0});
               }else{
-                $player->sendMessage(TF::RED."You Do Not Have $amount $iname!");
+                  $player->sendMessage("§cKing is not online right now");
               }
-              unset($this->item[$player->getName()]);
-              unset($this->shop[$player->getName()]);
-              return true;
-            }
           }
-          $idi++;
-        }
-      }
-    }
-    return true;
-  }
-
-  public function purchase(Player $player, $data, $amount){
-    $ids = -1;
-    $idi = -1;
-    foreach($this->item as $category){
-      $ids++;
-      $rawitemdata = $category["ICON"];
-      if($ids == $this->shop[$player->getName()]){
-        $name = $rawitemdata[0];
-        $data = $this->$name;
-        foreach($data as $name => $item){
-          if($name != "ICON"){
-            if($idi == $this->item[$player->getName()]){
-              $iname = $name;
-              $id = $item[0];
-              $damage = $item[1];
-              $cost = $item[2]*$amount;
-              $sell = $item[3]*$amount;
-              if(EconomyAPI::getInstance()->myMoney($player) > $cost){
-                $player->getInventory()->addItem(Item::get($id,$damage,$amount));
-                EconomyAPI::getInstance()->reduceMoney($player, $cost);
-                $player->sendMessage(TF::GREEN."You Purchased $amount $iname For $$cost");
-              }else{
-                $player->sendMessage(TF::RED."You Do Not Have Enough Money To Buy $amount $iname");
+          if($result == 0){
+        
+              if(preg_match("/[a-z]/i", $result{0})) {
+                  $player->sendMessage("§cYou must enter number!");
               }
-              unset($this->item[$player->getName()]);
-              unset($this->shop[$player->getName()]);
-              return true;
-            }
           }
-          $idi++;
-        }
-      }
-    }
-    return true;
+          var_dump($result);
+      });
+      $form->addInput('Amount of money to request');
+      $form->sendToPlayer($player);
   }
 
-  public function DataPacketReceiveEvent(DataPacketReceiveEvent $event){
-    $packet = $event->getPacket();
-    $player = $event->getPlayer();
-    if($packet instanceof ModalFormResponsePacket){
-      $id = $packet->formId;
-      $data = $packet->formData;
-      $data = json_decode($data);
-      if($data === Null) return true;
-      if($id === 110){
-        $this->shop[$player->getName()] = $data;
-        $this->sendShop($player, $data);
-        return true;
-      }
-      if($id === 111){
-        //$this->shop[$player->getName()] = $data;
-        $this->sendConfirm($player, $data);
-        return true;
-      }
-      if($id === 112){
-        $selling = $data[1];
-        $amount = $data[2];
-        if($selling){
-          $this->sell($player, $data, $amount);
-          return true;
-        }
-        $this->purchase($player, $data, $amount);
-        return true;
-      }
-    }
-    return true;
+  public function sendRequestResUI($player, $requester, $am){
+      $api = $this->getServer()->getPluginManager()->getPlugin("FormAPI");
+      $form = $api->createSimpleForm(function(Player $player, array $data){
+          $result = $data{0};
+          if(is_null($result)){
+              $player->sendMessage("§aRequest was automatically closed");
+              return false;
+          }
+          if($result == 0){
+              $player->sendMessage("Request accepted, money sent.");
+              if($pl = $this->getServer()->getPlayerExact($this->requester[strtolower($player->getName())])){
+                  $pl->sendMessage("King accepted request");
+                  $this->addMoney($pl, $this->am[strtolower($player->getName())]);
+              }
+          }
+          if($result == 1){
+              $player->sendMessage("Request cancelled");
+              if($pl = $this->getServer()->getPlayerExact($this->requester[strtolower($player->getName())])){
+                  $pl->sendMessage("King cancelled your money request");
+              }
+          }
+
+          var_dump($result);
+      });
+      $form->setTitle("Request from " . $requester);
+      $form->setContent("You have money request from " . $requester . ", by clicking 'yes' you send him " . $am . "money and by 'no' u cancell request.");
+      $form->addButton('Yes');
+      $form->addButton('No');
   }
 
-  public function onCommand(CommandSender $player, Command $command, string $label, array $args) : bool{
-    switch(strtolower($command)){
-      case "shop":
-        $this->sendMainShop($player);
-        return true;
-    }
+  public function addMoney($player, $i){
+     $config = $this->getCfg($player);
+      $money = $config->get("money") + $i;
+      $config->set("money", $money);
+      $config->save();
   }
 
+  public function getKingdomData($kingdom, $args = null){
+      $config = new Config($this->getDataFolder() . "/kingdoms/" . $kingdom . ".json");
+      if($args !== null) {
+          return $config->get($args);
+      }else{
+          return $config;
+      }
+  }
+
+  public function addJoinDest($dest, $player){
+      $this->joining[strtolower($player->getName())] = $dest;
+      $api = $this->getServer()->getPluginManager()->getPlugin("FormAPI");
+      $form = $api->createSimpleForm(function(Player $player, array $data){
+          $result = $data{0};
+          if(is_null($result)){
+              return false;
+          }
+          switch($result){
+              case 0;
+                  $player->sendMessage("§aJoining " . $this->joining[strtolower($player->getName())] . " Kingdom");
+                  echo $this->getConfig()->get($this->joining[strtolower($player->getName())] . "Kingdom");
+                  $this->getServer()->dispatchCommand(new ConsoleCommandSender(), "warp " . $player->getName() . " " . $this->joining[strtolower($player->getName())] . "Kingdom");
+                 // $player->teleport($this->getServer()->getLevelByName($this->getConfig()->get($this->joining[strtolower($player->getName())] . "Kingdom"))->getSafeSpawn());
+                  break;
+              case 1;
+                  $player->sendMessage("§aJoining " . $this->joining[strtolower($player->getName())] . " Village");
+                  $this->getServer()->dispatchCommand(new ConsoleCommandSender(), "warp " . $player->getName() . " " . $this->joining[strtolower($player->getName())] . "Village");
+                //  echo $this->getConfig()->get($this->joining[strtolower($player->getName())] . "Village");
+                //  $player->teleport($this->getServer()->getLevelByName($this->getConfig()->get($this->joining[strtolower($player->getName())] . "Kingdom"))->getSafeSpawn());
+              //    $player->teleport(\pocketmine\math\Vector3());
+             //     $player->teleport($this->getServer()->getLevelByName($this->getConfig()->get($this->joining[strtolower($player->getName())] . "Village"))->getSafeSpawn());
+                  break;
+          }
+          var_dump($result);
+      });
+      $form->setTitle("§aSelect if Village or Kingdom");
+      //   $form->addLabel('Select gamemode by clicking button.');
+      $form->setContent("Please choose destination you want join in the list below");
+      $form->addButton('Kingdom');
+      $form->addButton('Village');
+      $form->sendToPlayer($player);
+  }
+  
+  
+  public function addToKingdom($player, $kingdom){
+     $config = $this->configs[strtolower($player->getName())];
+     $config->set("kingdom", $kingdom);
+     $config->save();
+     $array = $this->getKingdomData($this->getKingdom($player))->get("members");
+    // $array[$player->getName()];
+  //   $array[] = $player->getName();
+    // $this->getKingdomData($this->getKingdom($player))->set("membersc", "kkt");
+     //$this->getKingdomData($this->getKingdom($player))->save();
+     echo 'ADDED!!!!!';
+  }
+
+
+ 
+  public function isNew($player){
+    if(!file_exists($this->getDataFolder() . "/players/" . $player . ".json")){
+      return true;
+    }else{
+      return false;
+    }
+  }
+  
+  public function registerPlayer($player){
+    $config = new Config($this->getDataFolder() . "/players/" . $player . ".json", Config::JSON, ["kingdom" => 0, "money" => 0, "name" => $player, "power" => 0]);
+    $this->configs[strtolower($player)] = new Config($this->getDataFolder() . "/players/" . $player . ".json");
+  }
+  
 }
