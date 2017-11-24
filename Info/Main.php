@@ -85,14 +85,14 @@ class Main extends \pocketmine\plugin\PluginBase{
                         case "info";
                             $api = $this->getServer()->getPluginManager()->getPlugin("FormAPI");
                             $form = $api->createSimpleForm(function (Player $player, array $data) {
-                                $result = $data{0};
+                                $result = $data[0];
                                 if (is_null($result)) {
                                     return false;
                                 }
-                                if ($result == 0) {
+                                if ($result === 0) {
                                     $this->sendReqUI($player);
                                 }
-                                if($result == 1){
+                                if($result === 1){
                                     if ($this->enabledc[strtolower($player->getName())] == false) {
                                         $player->sendMessage("§aEnabled Kingdom Chat");
                                         $this->enabledc[strtolower($player->getName())] = true;
@@ -100,7 +100,7 @@ class Main extends \pocketmine\plugin\PluginBase{
                                         $player->sendMessage("§aDisabled Kingdom Chat");
                                         $this->enabledc[strtolower($player->getName())] = false;
                                     }
-                                }elseif($result == 2){
+                                }elseif($result === 2){
 									$this->getMembers($this->getKingdom($player), $player);
 								}
                                 var_dump($result);
