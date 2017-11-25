@@ -1,16 +1,15 @@
-name: KingdomCore
-author: kaliiks
-version: 1.0
-api: [3.0.0-ALPHA9, 3.0.0-ALPHA8]
-load: STARTUP
-main: KingdomCore\Main
-
+---
+name: MoneyPouch
+main: Daniktheboss\MoneyPouch\Main
+version: 0.0.1
+api:
+- 3.0.0-ALPHA5
+- 3.0.0-ALPHA6
+- 3.0.0-ALPHA7
+- 3.0.0-ALPHA9
+author: Daniktheboss
+description: Get random amount of money using a pouch
 commands:
-   k:
-    description: Warfj
-   warpme:
-    description: Warp cmd
-   money:
-    description: Money cmd
-   skingdom:
-    description: Select kingdom
+  moneypouch:
+    description: Give player money pouches!
+...
